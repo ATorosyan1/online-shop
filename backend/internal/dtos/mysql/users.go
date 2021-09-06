@@ -1,4 +1,8 @@
-package dtos
+package mysql
+
+import (
+	"online-shop/backend/internal/models"
+)
 
 type RegisterRequestDto struct {
 	Username             string `form:"username" json:"username" xml:"username"  binding:"required"`
@@ -15,4 +19,29 @@ type LoginRequestDto struct {
 	Password string `form:"password"json:"password" binding:"exists,min=8,max=255"`
 
 	userModel models.User `json:"-"`
+}
+
+func CreateLoginSuccessful(user *models.User) map[string]interface{} {
+	var roles = make([]string, len(user.Roles))
+
+	for i := 0; i < len(user.Roles); i++ {
+		roles[i] = user.Roles[i].Name
+	}
+
+	return map[string]interface{}{
+		"success": true,
+		"token":   user.GenerateJwtToken(),
+		"user": map[string]interface{}{
+			"username": user.Username,
+			"id":       user.ID,
+			"roles":    roles,
+		},
+	}
+}
+
+func GetUserBasicInfo(user models.User) map[string]interface{} {
+	return map[string]interface{}{
+		"id":       user.ID,
+		"username": user.Username,
+	}
 }
